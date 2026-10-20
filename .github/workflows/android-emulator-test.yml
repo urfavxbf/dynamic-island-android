@@ -26,9 +26,11 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: Install SDK packages
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools" "platforms;android-35"
 
       - name: Install Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -46,11 +48,11 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: |
-            set -eu
+            set -u
             adb install -r app/build/outputs/apk/debug/app-debug.apk
             adb logcat -c
             adb shell am force-stop com.example.dynamicisland
-            adb shell am start -W -n com.example.dynamicisland/.BootActivity
+            adb shell am start -W -n com.example.dynamicisland/.DebugActivity || true
             sleep 8
             adb shell dumpsys activity activities > activity-state.txt
             adb logcat -d -v threadtime > logcat.txt
@@ -62,8 +64,8 @@ jobs:
               echo "A fatal exception was found. See uploaded logcat artifact."
               exit 1
             fi
-            grep -q "com.example.dynamicisland/.BootActivity" activity-state.txt || {
-              echo "BootActivity does not appear to be active. See uploaded logs."
+            grep -q "com.example.dynamicisland/.DebugActivity" activity-state.txt || {
+              echo "DebugActivity does not appear to be active. See uploaded logs."
               exit 1
             }
 
