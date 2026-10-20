@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <application
         android:name=".CrashReportingApplication"
         android:allowBackup="true"
         android:label="Dynamic Island"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="true"
+            android:label="Dynamic Island Settings">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".DebugActivity"
             android:exported="true"
@@ -17,11 +27,15 @@
         </activity>
         <activity
             android:name=".MainActivity"
+            android:exported="true" />
+        <service
+            android:name=".IslandNotificationListenerService"
+            android:label="Dynamic Island Notification Access"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
-        </activity>
+        </service>
     </application>
 </manifest>
