@@ -1,61 +1,47 @@
 # Dynamic Island Android
 
-A Dynamic Island-inspired Android UI prototype built with **Kotlin** and **Jetpack Compose**, prepared for development on an Android phone using **Code on the Go**.
+Kotlin Android app built with Jetpack Compose. This branch temporarily opens a native diagnostic screen first so a device-specific startup crash can be investigated without needing ADB.
 
-## Current features
+## Clone on Code On The Go
 
-- Animated pill that expands and collapses when tapped
-- Simulated now-playing state with animated audio bars
-- Play/pause demo control
-- Live-notification preview toggle
-- Dark UI with a Compose layout
+1. In Code On The Go, open the project/Git import option.
+2. Clone this repository:
+   `https://github.com/urfavxbf/dynamic-island-android.git`
+3. If you already have a local copy and Git reports checkout conflicts, do not overwrite your local edits blindly. Rename the existing project folder or clone into a new folder.
+4. Open the cloned `dynamic-island-android` folder as an existing Gradle project.
+5. Wait for Gradle sync to finish, then build and install the debug variant.
 
-> **Current scope:** this is an in-app UI prototype. It does not yet draw over other apps or read real media sessions and notifications.
+If the app is already cloned and you want the newest version, run this only after saving your local changes:
+```bash
+git status
+git pull --ff-only origin main
+```
 
-## Build environment
+## Device startup diagnostics
 
-This project is configured for the current Code on the Go toolchain:
+The current launcher is the native **Dynamic Island Diagnostics** screen. It deliberately uses Android Views rather than Compose so you can open a basic diagnostic screen even if the Compose UI is the source of the crash.
 
-- Android Gradle Plugin 9.3.1
-- Gradle 9.6.1
-- Kotlin 2.3.21 / Compose compiler plugin
-- Java 17 language target
-- Android SDK platform 36
-- Minimum Android API 26
+1. Launch the app and read the diagnostic screen.
+2. Tap **OPEN MAIN DEMO** to try launching the main Compose screen.
+3. If it closes, reopen the app and tap **REFRESH CRASH LOG**.
+4. Tap **COPY CRASH LOG** and paste the report into the GitHub issue or chat where the bug is being tracked.
 
-Code on the Go releases and bundled toolchains can change. If your installed version uses a different toolchain, follow its migration prompt or let me know the exact error shown.
+The crash report is stored in the app's private storage as `last_crash.txt`; the diagnostics screen displays it without requiring the `adb` command. Some native/process kills may not be caught by the uncaught-exception handler, in which case the report may remain empty.
 
-## Open and run using only your phone
+## Build configuration
 
-1. Install or update Code on the Go from the [official website](https://appdevforall.org/code-on-the-go/).
-2. Open the app and finish its first-time setup. Allow it to install/download its build assets; several gigabytes of free storage may be needed.
-3. Open the project/import screen and choose **Import/Open existing Gradle project** (wording may differ by app version).
-4. Select the downloaded or cloned `dynamic-island-android` project folder. If starting from GitHub, download the repository as a ZIP, then extract it using your phone's file manager.
-5. Wait for Gradle sync/dependency resolution to finish. Internet access may be needed the first time.
-6. Select the `app` run configuration and build/run the debug app on your phone.
+- Namespace/application ID: `com.example.dynamicisland`
+- Minimum Android API: 26 (Android 8.0)
+- Target SDK: 28
+- Java/Kotlin JVM target: 17
+- Android SDK compile platform: 36
 
-If the app does not offer a project import option, check the current [Code on the Go help pages](https://appdevforall.org/codeonthego/help/index.html).
+GitHub Actions workflows build the debug APK and run an emulator launch check. Emulator success does not guarantee success on every physical phone, so please share the crash report from your device if the issue persists.
 
-## Project structure
+## Main source files
 
-    .
-    ├── app/
-    │   ├── build.gradle.kts
-    │   └── src/main/
-    │       ├── AndroidManifest.xml
-    │       └── java/com/example/dynamicisland/MainActivity.kt
-    ├── gradle/wrapper/gradle-wrapper.properties
-    ├── build.gradle.kts
-    ├── gradle.properties
-    └── settings.gradle.kts
-
-## Planned next steps
-
-1. Improve accessibility and polish the UI.
-2. Integrate real playback information through Android media-session APIs.
-3. Add notification-listener integration with explicit user permission.
-4. Explore system overlay mode with the required special permission and lifecycle handling.
-
-## License
-
-No license has been added yet. All rights remain with the repository owner unless a license is added.
+- `app/src/main/java/com/example/dynamicisland/MainActivity.kt` — main Compose UI
+- `app/src/main/java/com/example/dynamicisland/DebugActivity.kt` — native diagnostic screen
+- `app/src/main/java/com/example/dynamicisland/CrashReportingApplication.kt` — uncaught exception report writer
+- `app/src/main/java/com/example/dynamicisland/IslandOverlayService.kt` — floating overlay service
+- `app/src/main/AndroidManifest.xml` — app components and launcher activity
