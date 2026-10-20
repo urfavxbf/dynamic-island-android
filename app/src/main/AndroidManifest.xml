@@ -14,7 +14,12 @@
         <activity
             android:name=".DebugActivity"
             android:exported="true"
-            android:label="Dynamic Island Debug" />
+            android:label="Dynamic Island Debug">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".SettingsActivity"
@@ -24,12 +29,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="Dynamic Island">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:label="Dynamic Island" />
 
         <service
             android:name=".IslandOverlayService"
