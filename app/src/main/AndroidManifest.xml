@@ -5,16 +5,16 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
-        android:name=".CrashReportingApplication"
         android:allowBackup="true"
-        android:label="Dynamic Island"
+        android:label="Dynamic Island Diagnostics"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
             android:name=".DebugActivity"
             android:exported="true"
-            android:label="Dynamic Island Debug">
+            android:label="Dynamic Island Debug"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
