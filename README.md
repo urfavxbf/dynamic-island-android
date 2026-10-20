@@ -4,9 +4,11 @@ A clean Android baseline for the Dynamic Island project.
 
 ## Build
 
-The GitHub Actions workflow builds a debug APK on GitHub-hosted Linux runners and uploads it as an artifact.
+This project targets Android SDK 35 and uses Java 17 and Gradle 8.9. It includes a lightweight gradlew launcher for environments where the standard Gradle Wrapper JAR is unavailable. The first invocation downloads Gradle 8.9, so the device or IDE must have network access.
 
-For local Android development, open this project in Android Studio or import it into a compatible Android IDE with Android SDK Platform 35 installed.
+In Code On The Go, open/import the project root. If COTG expects the standard Gradle Wrapper JAR rather than invoking gradlew, use its installed Gradle option or share the exact build error so the project can be adjusted for that version.
+
+GitHub Actions builds a debug APK on a hosted Linux runner and uploads it as an artifact. No emulator is used.
 
 ## Current scope
 
