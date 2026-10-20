@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
     <application
         android:name=".CrashReportingApplication"
         android:allowBackup="true"
@@ -11,12 +14,7 @@
         <activity
             android:name=".DebugActivity"
             android:exported="true"
-            android:label="Dynamic Island Debug">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:label="Dynamic Island Debug" />
 
         <activity
             android:name=".SettingsActivity"
@@ -26,7 +24,17 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="Dynamic Island Demo" />
+            android:label="Dynamic Island">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".IslandOverlayService"
+            android:exported="false"
+            android:stopWithTask="false" />
 
         <service
             android:name=".IslandNotificationListenerService"
