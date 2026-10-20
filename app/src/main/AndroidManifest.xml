@@ -11,9 +11,9 @@
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
-            android:name=".BootActivity"
+            android:name=".DebugActivity"
             android:exported="true"
-            android:label="Dynamic Island Startup Test"
+            android:label="Dynamic Island Debug"
             android:theme="@android:style/Theme.Material.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,9 +22,9 @@
         </activity>
 
         <activity
-            android:name=".DebugActivity"
-            android:exported="true"
-            android:label="Dynamic Island Debug" />
+            android:name=".BootActivity"
+            android:exported="false"
+            android:label="Dynamic Island Startup Test" />
 
         <activity
             android:name=".SettingsActivity"
