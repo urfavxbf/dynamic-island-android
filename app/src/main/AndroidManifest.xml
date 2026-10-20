@@ -7,15 +7,7 @@
         android:label="Dynamic Island"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
-        <activity
-            android:name=".SettingsActivity"
-            android:exported="true"
-            android:label="Dynamic Island Settings">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+
         <activity
             android:name=".DebugActivity"
             android:exported="true"
@@ -25,9 +17,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="true"
+            android:label="Dynamic Island Settings" />
+
         <activity
             android:name=".MainActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:label="Dynamic Island Demo" />
+
         <service
             android:name=".IslandNotificationListenerService"
             android:label="Dynamic Island Notification Access"
