@@ -61,18 +61,9 @@ jobs:
             grep -E "mResumedActivity|topResumedActivity" activity-state.txt || true
             echo "===== CRASH / FATAL EXCEPTIONS ====="
             grep -A 35 -B 5 -E "FATAL EXCEPTION|AndroidRuntime|Process: com.example.dynamicisland|Fatal signal" logcat.txt || true
-            if grep -qE "FATAL EXCEPTION|Fatal signal" logcat.txt; then
-              echo "A fatal crash was found. See uploaded logcat artifact."
-              exit 1
-            fi
-            if ! grep -qE "com.example.dynamicisland/.MainActivity|com.example.dynamicisland/com.example.dynamicisland.MainActivity" activity-state.txt; then
-              echo "MainActivity is not active. See uploaded logs."
-              exit 1
-            fi
-            if ! test -s app-pid.txt; then
-              echo "App process is not running after launch. See uploaded logs."
-              exit 1
-            fi
+            grep -qE "FATAL EXCEPTION|Fatal signal" logcat.txt && { echo "A fatal crash was found. See uploaded logcat artifact."; exit 1; } || true
+            grep -qE "com.example.dynamicisland/.MainActivity|com.example.dynamicisland/com.example.dynamicisland.MainActivity" activity-state.txt || { echo "MainActivity is not active. See uploaded logs."; exit 1; }
+            test -s app-pid.txt || { echo "App process is not running after launch. See uploaded logs."; exit 1; }
 
       - name: Upload launch diagnostics
         if: always()
