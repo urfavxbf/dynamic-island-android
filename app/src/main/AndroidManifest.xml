@@ -14,8 +14,13 @@
         <activity
             android:name=".DebugActivity"
             android:exported="true"
-            android:label="Dynamic Island Debug"
-            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+            android:label="Dynamic Island Diagnostics"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".BootActivity"
@@ -31,10 +36,6 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="Dynamic Island">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
 
         <service
