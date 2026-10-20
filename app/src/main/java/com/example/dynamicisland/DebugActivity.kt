@@ -1,82 +1,111 @@
 package com.example.dynamicisland
 
+import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.Button
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import android.view.Gravity
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
 import java.io.File
 
-class DebugActivity : ComponentActivity() {
+/**
+ * Deliberately uses native Android Views rather than Compose so this screen can
+ * still be used to inspect startup failures if the Compose UI fails to render.
+ */
+class DebugActivity : Activity() {
+    private lateinit var reportView: TextView
+    private lateinit var reportFile: File
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val logFile = File(filesDir, "last_crash.txt")
-        setContent {
-            MaterialTheme {
-                var report by remember { mutableStateOf(readReport(logFile)) }
-                var copied by remember { mutableStateOf(false) }
-                val clipboard = LocalClipboardManager.current
-                Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF08090D)) {
-                    Column(
-                        modifier = Modifier.fillMaxSize().padding(18.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Text("DYNAMIC ISLAND DEBUG", color = Color(0xFFB8F36B), fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                        Text(
-                            if (report.isBlank()) "Walang crash log na na-save. Buksan ang main app para ulitin ang crash, pagkatapos bumalik dito." else "Nakuha ang huling uncaught crash. Pindutin ang copy at i-paste ang report sa chat.",
-                            color = Color.White,
-                            fontSize = 14.sp
-                        )
-                        Text(
-                            report.ifBlank { "Walang crash report sa ngayon.\n\nFile: files/last_crash.txt" },
-                            color = Color(0xFFFFC6C6),
-                            fontSize = 11.sp,
-                            lineHeight = 15.sp,
-                            modifier = Modifier.weight(1f).fillMaxWidth()
-                                .background(Color(0xFF15171F), RoundedCornerShape(12.dp))
-                                .padding(12.dp).verticalScroll(rememberScrollState())
-                        )
-                        Button(
-                            onClick = {
-                                clipboard.setText(AnnotatedString(report.ifBlank { "No crash report captured yet." }))
-                                copied = true
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) { Text(if (copied) "COPIED — PASTE IN CHAT" else "COPY CRASH REPORT") }
-                        OutlinedButton(
-                            onClick = { report = readReport(logFile); copied = false },
-                            modifier = Modifier.fillMaxWidth()
-                        ) { Text("REFRESH LOG") }
-                        OutlinedButton(
-                            onClick = { logFile.delete(); report = ""; copied = false },
-                            modifier = Modifier.fillMaxWidth()
-                        ) { Text("CLEAR LOG") }
-                    }
-                }
-            }
+        reportFile = File(filesDir, "last_crash.txt")
+
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(20), dp(20), dp(20), dp(20))
+            setBackgroundColor(Color.rgb(8, 9, 13))
         }
+
+        val title = TextView(this).apply {
+            text = "DYNAMIC ISLAND DEBUG"
+            textSize = 22f
+            setTextColor(Color.rgb(184, 243, 107))
+            typeface = Typeface.DEFAULT_BOLD
+        }
+        root.addView(title, matchWrap())
+
+        val intro = TextView(this).apply {
+            text = "Native diagnostic screen (no Compose). Kung lumabas ito, gamitin ang mga button para siyasatin ang app."
+            textSize = 14f
+            setTextColor(Color.WHITE)
+            setPadding(0, dp(10), 0, dp(12))
+        }
+        root.addView(intro, matchWrap())
+
+        reportView = TextView(this).apply {
+            textSize = 12f
+            setTextColor(Color.rgb(255, 198, 198))
+            setPadding(dp(12), dp(12), dp(12), dp(12))
+            setBackgroundColor(Color.rgb(21, 23, 31))
+            text = readReport()
+        }
+        val scroll = ScrollView(this).apply { addView(reportView) }
+        root.addView(scroll, LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f
+        ))
+
+        addButton(root, "REFRESH CRASH LOG") { reportView.text = readReport() }
+        addButton(root, "COPY CRASH LOG") {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("Dynamic Island crash log", reportView.text))
+            android.widget.Toast.makeText(this, "Crash log copied", android.widget.Toast.LENGTH_SHORT).show()
+        }
+        addButton(root, "OPEN SETTINGS SCREEN") {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+        addButton(root, "OPEN MAIN DEMO") {
+            startActivity(Intent(this, MainActivity::class.java))
+        }
+        addButton(root, "CLEAR CRASH LOG") {
+            reportFile.delete()
+            reportView.text = readReport()
+        }
+
+        setContentView(root)
     }
 
-    private fun readReport(file: File): String =
-        runCatching { if (file.exists()) file.readText() else "" }.getOrDefault("")
+    override fun onResume() {
+        super.onResume()
+        if (::reportView.isInitialized) reportView.text = readReport()
+    }
+
+    private fun readReport(): String = runCatching {
+        if (reportFile.exists()) reportFile.readText() else
+            "WALANG NA-SAVE NA CRASH LOG.\n\n1. Pindutin ang OPEN MAIN DEMO.\n2. Kung magsara ito, bumalik dito at pindutin ang REFRESH CRASH LOG.\n\nKung blanko pa rin ang screen na ito, posibleng mas maagang startup/native error ang nangyayari."
+    }.getOrElse { "Hindi mabasa ang crash log: $it" }
+
+    private fun addButton(parent: LinearLayout, label: String, action: () -> Unit) {
+        val button = Button(this).apply {
+            text = label
+            isAllCaps = false
+            setOnClickListener { runCatching(action).onFailure {
+                android.widget.Toast.makeText(this@DebugActivity, it.toString(), android.widget.Toast.LENGTH_LONG).show()
+            } }
+        }
+        parent.addView(button, matchWrap())
+    }
+
+    private fun matchWrap() = LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+    )
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 }
