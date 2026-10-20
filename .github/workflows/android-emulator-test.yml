@@ -1,0 +1,78 @@
+name: Android Emulator Launch Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  launch-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+
+      - name: Build APK
+        run: gradle --no-daemon --stacktrace assembleDebug
+
+      - name: Launch app in Android emulator and capture crash logs
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: |
+            set -eu
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb logcat -c
+            adb shell am force-stop com.example.dynamicisland
+            adb shell am start -W -n com.example.dynamicisland/.BootActivity
+            sleep 8
+            adb shell dumpsys activity activities > activity-state.txt
+            adb logcat -d -v threadtime > logcat.txt
+            echo "===== RESUMED ACTIVITY ====="
+            grep -E "mResumedActivity|topResumedActivity" activity-state.txt || true
+            echo "===== FATAL EXCEPTIONS ====="
+            grep -A 35 -B 5 -E "FATAL EXCEPTION|AndroidRuntime|Process: com.example.dynamicisland" logcat.txt || true
+            if grep -q "FATAL EXCEPTION" logcat.txt; then
+              echo "A fatal exception was found. See uploaded logcat artifact."
+              exit 1
+            fi
+            grep -q "com.example.dynamicisland/.BootActivity" activity-state.txt || {
+              echo "BootActivity does not appear to be active. See uploaded logs."
+              exit 1
+            }
+
+      - name: Upload launch diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-emulator-launch-diagnostics
+          path: |
+            logcat.txt
+            activity-state.txt
+          if-no-files-found: ignore
