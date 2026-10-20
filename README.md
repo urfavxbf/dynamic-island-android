@@ -1,15 +1,23 @@
 # Dynamic Island Android
 
-A clean Android baseline for the Dynamic Island project.
+A clean native Android baseline for the Dynamic Island project, configured with Groovy Gradle files for compatibility with Android IDEs that scan `settings.gradle` and `app/build.gradle`.
 
-## Build
+## Project setup
 
-This project targets Android SDK 35 and uses Java 17 and Gradle 8.9. It includes a lightweight gradlew launcher for environments where the standard Gradle Wrapper JAR is unavailable. The first invocation downloads Gradle 8.9, so the device or IDE must have network access.
+- Root project: `settings.gradle` and `build.gradle`
+- Android application module: `app/build.gradle`
+- Android SDK: 35
+- Minimum SDK: 26
+- Java: 17
+- Android Gradle Plugin: 8.7.3
+- Gradle: 8.9
 
-In Code On The Go, open/import the project root. If COTG expects the standard Gradle Wrapper JAR rather than invoking gradlew, use its installed Gradle option or share the exact build error so the project can be adjusted for that version.
+Open/import the repository root (the directory containing `settings.gradle`) in Code On The Go. The application module is `:app`.
 
-GitHub Actions builds a debug APK on a hosted Linux runner and uploads it as an artifact. No emulator is used.
+## Build validation
+
+GitHub Actions builds the debug APK on a hosted Linux runner and uploads it as an artifact. No emulator is used.
 
 ## Current scope
 
-This baseline intentionally uses a native Android Activity with no third-party runtime dependencies. First goal: verify the app builds, installs, and opens reliably. Overlay permissions and Dynamic Island behavior will be added after this baseline passes.
+This baseline intentionally uses a native Android Activity with no third-party runtime dependencies. First goal: verify the app builds, installs, and opens reliably. Overlay permissions and Dynamic Island behavior will be added after startup is verified.
