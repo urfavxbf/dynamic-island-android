@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -68,10 +70,67 @@ private val Violet = Color(0xFFB6A0FF)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val crashFile = java.io.File(filesDir, "last_crash.txt")
+        val savedCrash = runCatching {
+            if (crashFile.exists()) crashFile.readText() else null
+        }.getOrNull()
         setContent {
             MaterialTheme {
-                DynamicIslandApp()
+                if (!savedCrash.isNullOrBlank()) {
+                    CrashReportScreen(
+                        report = savedCrash,
+                        onClear = {
+                            crashFile.delete()
+                            recreate()
+                        }
+                    )
+                } else {
+                    DynamicIslandApp()
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun CrashReportScreen(report: String, onClear: () -> Unit) {
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Ink)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text("Previous crash captured", color = Lime, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        Text(
+            "Copy this report and send it here so the actual startup error can be fixed.",
+            color = Color.White,
+            fontSize = 14.sp
+        )
+        Text(
+            report,
+            color = Color(0xFFFFC6C6),
+            fontSize = 11.sp,
+            lineHeight = 15.sp,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .background(Panel, RoundedCornerShape(12.dp))
+                .padding(12.dp)
+                .verticalScroll(rememberScrollState())
+        )
+        androidx.compose.material3.Button(
+            onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(report)) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("COPY CRASH REPORT")
+        }
+        androidx.compose.material3.Button(
+            onClick = onClear,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("CLEAR REPORT AND OPEN APP")
         }
     }
 }
