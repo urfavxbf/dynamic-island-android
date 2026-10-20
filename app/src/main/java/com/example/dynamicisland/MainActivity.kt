@@ -76,16 +76,24 @@ class MainActivity : ComponentActivity() {
         }.getOrNull()
         setContent {
             MaterialTheme {
-                if (!savedCrash.isNullOrBlank()) {
+                var showDebugScreen by remember { mutableStateOf(!savedCrash.isNullOrBlank()) }
+                if (showDebugScreen) {
                     CrashReportScreen(
-                        report = savedCrash,
+                        report = savedCrash.orEmpty(),
+                        onRefresh = {
+                            showDebugScreen = false
+                        },
                         onClear = {
                             crashFile.delete()
-                            recreate()
+                            showDebugScreen = false
                         }
                     )
                 } else {
-                    DynamicIslandApp()
+                    DynamicIslandApp(
+                        onOpenDebug = {
+                            showDebugScreen = true
+                        }
+                    )
                 }
             }
         }
@@ -93,8 +101,13 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun CrashReportScreen(report: String, onClear: () -> Unit) {
+private fun CrashReportScreen(
+    report: String,
+    onRefresh: () -> Unit,
+    onClear: () -> Unit
+) {
     val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+    var copied by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -102,14 +115,14 @@ private fun CrashReportScreen(report: String, onClear: () -> Unit) {
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Previous crash captured", color = Lime, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        Text("DEBUG / CRASH LOG", color = Lime, fontSize = 22.sp, fontWeight = FontWeight.Bold)
         Text(
-            "Copy this report and send it here so the actual startup error can be fixed.",
+            if (report.isBlank()) "Walang naka-save na crash report. Buksan ang app at ulitin ang problemang nangyayari; awtomatikong mase-save ang uncaught crash." else "May na-save na crash report. Kopyahin ito at ipadala rito para mahanap ang eksaktong sanhi.",
             color = Color.White,
             fontSize = 14.sp
         )
         Text(
-            report,
+            if (report.isBlank()) "No crash log available." else report,
             color = Color(0xFFFFC6C6),
             fontSize = 11.sp,
             lineHeight = 15.sp,
@@ -121,22 +134,31 @@ private fun CrashReportScreen(report: String, onClear: () -> Unit) {
                 .verticalScroll(rememberScrollState())
         )
         androidx.compose.material3.Button(
-            onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(report)) },
+            onClick = {
+                clipboard.setText(androidx.compose.ui.text.AnnotatedString(report.ifBlank { "No crash report captured yet." }))
+                copied = true
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("COPY CRASH REPORT")
+            Text(if (copied) "COPIED — PASTE IT HERE" else "COPY CRASH REPORT")
         }
-        androidx.compose.material3.Button(
+        androidx.compose.material3.OutlinedButton(
+            onClick = onRefresh,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("BACK TO APP")
+        }
+        androidx.compose.material3.OutlinedButton(
             onClick = onClear,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("CLEAR REPORT AND OPEN APP")
+            Text("CLEAR CRASH LOG")
         }
     }
 }
 
 @Composable
-private fun DynamicIslandApp() {
+private fun DynamicIslandApp(onOpenDebug: () -> Unit) {
     var expanded by remember { mutableStateOf(true) }
     var musicPlaying by remember { mutableStateOf(true) }
     var notificationsEnabled by remember { mutableStateOf(true) }
@@ -259,6 +281,13 @@ private fun DynamicIslandApp() {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 10.dp)
             )
+            Spacer(Modifier.height(14.dp))
+            androidx.compose.material3.OutlinedButton(
+                onClick = onOpenDebug,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("OPEN DEBUG / CRASH LOG")
+            }
             Spacer(Modifier.height(20.dp))
         }
     }
